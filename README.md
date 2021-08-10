@@ -1,1 +1,3 @@
-# IA-2021
+# Repositorio de Inteligencia Artificial
+
+GRUPO: Ramiro Giandinoto - Matias Quevedo - Esteban Rivas
