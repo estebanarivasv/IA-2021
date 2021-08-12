@@ -18,11 +18,11 @@ class Floor:
 		self.size = N
 		self.tiles = [Tile() for x in range(self.size)]
 
-	def printTiles(self):
+	def print_tiles(self):
 		states = []
 		for x in self.tiles:
 			states.append(x.state)
-		print(states)
+		print("\n\033[1m\033[33mActual floor state: ", states)
 
 
 class Vacuum:
@@ -36,56 +36,69 @@ class Vacuum:
 		self.cleaned_tiles = 0
 
 	def run(self):
-		# TODO cuando ya no queden baldozas que puedan ser limpiadas...
 		print("Number of tiles: ", self.num_tiles)
 
 		while self.cleaned_tiles < self.num_tiles:
-			print(self.floor.printTiles())
+
 			# Esta condición se cumple mientras la aspiradora NO esté en los extremos.
 			# Cuando llega a un extremo, sale del while y comprueba el cambio de dirección.
 
 			while 0 <= self.position <= self.floor.size - 1:
-				self.movements += 1
-				print("\nMovement No: ", self.movements)
+				self.floor.print_tiles()
+				self.print_position()
 
-				print('		\033[92m Tile Nº:' + str(self.position + 1))
+				self.movements += 1
+				print("Movement No: ", self.movements)
+
+				print('\n\033[92mTile Nº:' + str(self.position + 1))
 				tile = self.floor.tiles[self.position]
 				print("Initial tile state: ", tile.state)
 
 				# Si está limpio no hace nada, solo se mueve
-				if tile.state == ' ' or tile.is_stained is True:
+				if tile.state == ' ' or (tile.is_stained is True and tile.clean_happened > 3):
 					self.cleaned_tiles += 1
-					print('\033[92m Its clean')
+					print('Cleaned tiles: ', self.cleaned_tiles, '/', self.num_tiles)
+					print('\033[92mIts clean')
 					if tile.is_stained is True:
 						print("Times that the tile has been cleaned: ", tile.clean_happened)
+
 					self.move()
 				# Si esta sucio llama al método limpiar y se mueve
 				else:
-					print('\033[91m Its dirty')
+					print('\033[91mIts dirty')
 					tile = self.clean(tile)
 					self.move()
-				print("New tile state: ", tile.state)
+				print("New tile state: '", tile.state, "'")
 				time.sleep(1)
 
 			if self.position <= -1:
 				# Cuando se salga del extremo izquierdo, que lo vuelva a posicionar en la posicion 0
 				self.position = 0
-				self.changeDirection()
+				self.change_direction()
 			elif self.position >= self.floor.size:
 				# Cuando se salga del extremo derecho, que lo vuelva a posicionar en la última posicion
 				self.position = self.floor.size - 1
-				self.changeDirection()
+				self.change_direction()
 			time.sleep(1)
+
 			print(' ')
 			print('\033[1m \033[92m -----------------')
 			print('\033[1m \033[92m Restart')
 			print('\033[1m \033[92m -----------------')
 			print(' ')
 
-		print("Final state: ", self.floor.printTiles())
+		print("Final state: ", self.floor.print_tiles())
+
+	def print_position(self):
+		position = []
+		for x in self.floor.tiles:
+			position.append(x.clean_happened)
+		position[self.position] = "V"
+		print("Vacuum position and times cleaned: ", position)
 
 	def clean(self, tile):
 		print('Cleaning')
+		# El entorno se modifica pero la aspiradora realmente no reconoce los tipos de suciedad
 		if tile.state == '+':
 			tile.state = ' '
 		elif tile.state == '*':
@@ -95,7 +108,7 @@ class Vacuum:
 		tile.clean_happened += 1
 
 		# Si la baldosa sigue sucia, y ya fue limpiada, se marca como manchada.
-		if tile.state == '#' and tile.clean_happened >= 3:
+		if tile.state == '#' and tile.clean_happened < 4:
 			tile.is_stained = True
 
 		return tile
@@ -103,12 +116,12 @@ class Vacuum:
 	def move(self):
 		if self.direction == 'r':
 			self.position = self.position + 1
-			print('\033[94m Moves to tile Nº:' + str(self.position + 1))
+			print('\033[94mMoves to tile Nº:' + str(self.position + 1))
 		elif self.direction == 'l':
 			self.position = self.position - 1
-			print('\033[94m Moves to tile Nº:' + str(self.position + 1))
+			print('\033[94mMoves to tile Nº:' + str(self.position + 1))
 
-	def changeDirection(self):
+	def change_direction(self):
 		print('\033[93m _______________')
 		print('\033[93m Wall detected')
 		print('\033[93m _______________')
