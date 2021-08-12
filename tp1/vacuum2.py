@@ -8,7 +8,8 @@ class Tile:
 
 	def __init__(self):
 		self.state = random.choice(choices)
-		self.vecesQuePaso = 0
+		self.happened = 0
+		self.isStained = False
 
 
 class Floor:
@@ -31,6 +32,7 @@ class Vacuum:
 
 	def run(self):
 		while True:
+			print(self.floor.printTiled())
 			# Esta condición se cumple mientras la aspiradora NO esté en los extremos.
 			# Cuando llega a un extremo, sale del while y comprueba el cambio de dirección
 			while self.position > 0 and self.position < self.floor.size -1:
@@ -46,7 +48,7 @@ class Vacuum:
 					tile.state = self.clean(tile.state)	
 					self.move()
 				print(tile.state)
-				time.sleep(2)
+				time.sleep(1)
 
 
 			if self.position <= 0:
@@ -55,7 +57,7 @@ class Vacuum:
 			elif self.position >= self.floor.size -1:
 				self.position = self.floor.size -2
 				self.changeDirection()
-			time.sleep(3)
+			time.sleep(1)
 			print(' ')
 			print('\033[1m \033[92m -----------------')
 			print('\033[1m \033[92m Restart')
@@ -98,10 +100,13 @@ class Vacuum:
 if (__name__ == "__main__"):
 
 	size = random.randint(1,100)
+
 	position = random.randint(0, size-1)
 
 	floor = Floor(N=size)
 
+	print(size)
+	print(position)
 	vacuum = Vacuum(floor=floor, direction='l', position=position)
 	vacuum.run()
 
