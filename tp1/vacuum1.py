@@ -33,17 +33,20 @@ class Vacuum:
     def run(self):
         while True:
             print(self.floor.printTiles())
+            # This condition is met as long as the vacuum is NOT at the ends.
             # Esta condición se cumple mientras la aspiradora NO esté en los extremos.
             # Cuando llega a un extremo, sale del while y comprueba el cambio de dirección.
-
+            # When it reaches an extreme, it exits the while and checks for the change of direction.
             while 0 <= self.position <= self.floor.size - 1:
                 print('		\033[92m Tile Nº:' + str(self.position + 1))
                 tile = self.floor.tiles[self.position]
                 # Si está limpio no hace nada, solo se mueve
+                # If it's clean it doesn't do anything, it just moves
                 if tile.state == ' ':
                     print('\033[92m Its clean')
                     self.move()
                 # Si esta sucio llama al método limpiar y se mueve
+                # If it is dirty, it calls the clean method and moves
                 else:
                     print('\033[91m Its dirty')
                     tile.state = self.clean(tile.state)
@@ -53,10 +56,12 @@ class Vacuum:
 
             if self.position <= -1:
                 # Cuando se salga del extremo izquierdo, que lo vuelva a posicionar en la posicion 0
+                # When it comes off the left end, reposition it to position 0
                 self.position = 0
                 self.changeDirection()
             elif self.position >= self.floor.size:
                 # Cuando se salga del extremo derecho, que lo vuelva a posicionar en la última posicion
+                # When it comes off the far right, let it reposition it in the last position
                 self.position = self.floor.size - 1
                 self.changeDirection()
             time.sleep(1)
