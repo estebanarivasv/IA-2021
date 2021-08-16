@@ -43,8 +43,9 @@ class Vacuum:
 
 	def __init__(self, floor, direction, position):
 		self.floor = floor
-		self.direction = direction
 		self.position = position
+		self.direction = self.cleaning_percentage()
+		# print(self.direction)
 		self.num_tiles = floor.size
 		self.movements = 0
 		self.cleaned_tiles = 0
@@ -144,8 +145,41 @@ class Vacuum:
 		elif self.direction == 'r':
 			self.direction = 'l'
 
+	def cleaning_percentage(self):
+		left_array = self.floor.tiles[0:self.position]
+		right_array = self.floor.tiles[self.position:self.floor.size]
+		left_percent = self.count_clean(left_array)
+		rigth_percent = self.count_clean(right_array)
+
+		if left_percent <= rigth_percent:
+			return 'l'
+		else:
+			return 'r'
+
+
+	def count_clean(self,slice_array):
+		sub_cantidad = 0
+		clean_size = 0
+		clean_percent = 0.00
+		# print(']')
+		for x in slice_array:
+			sub_cantidad += 1
+			# print(x.state)
+			if x.state == ' ':
+				clean_size += 1
+		# print('[')
+		clean_percent = (clean_size / sub_cantidad)*100
+		# print(' ')
+		# print('Cantidad: ', sub_cantidad)
+		# print('limpios: ', clean_size)
+		# print('porcentaje: ', clean_percent)
+		return clean_percent
+
+
+
 
 if __name__ == "__main__":
+	print('\033[92m')
 	size = random.randint(1, 100)
 
 	position = random.randint(0, size - 1)
@@ -155,5 +189,7 @@ if __name__ == "__main__":
 	print("Floor size: ", size)
 	print("Initial position: ", position)
 
-	vacuum = Vacuum(floor=floor, direction='l', position=5)
+	vacuum = Vacuum(floor=floor, direction='l', position=2)
 	vacuum.run()
+	# floor.print_tiles()
+	# vacuum.cleaning_percentage()
