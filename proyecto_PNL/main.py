@@ -4,15 +4,21 @@ PROYECTO DE PROCESAMIENTO NATURAL DEL LENGUAJE
 
 ENTREGA: 21/10/21
 
-Consigna: Elegir un tema que queramos tratar (hashtag, palabra clave, que puede ser persona, evento, etc.)
-y este debe estar optimizado para trabajar bien el tema.
+Consigna: Elegir un tema, persona, situación o evento. Este debe estar optimizado para trabajar bien el tema.
 
-Debemos extraer cualquier informacion util que sirva y con esos resultados generamos un reporte
-con graficos y tablas
+Crear un sistema que:
+
+* Obtenga los Tweets asociados con dicho tema (Hashtag y/o Palabras claves)
+* Aplique algunas de las técnicas de PNL (Tokenización, POS, Lematización, Derivación, Polarización)
+* Obtener algunos de los siguientes datos 
+    - ¿Quíenes están involucrados?
+    - ¿De qué se trata?
+    - ¿En qué lugares ocurre la acción?
+    - ¿Qué opinion o sentimientos expresa la gente?
+* Generar resultados (Gráficos, tablas)
 
 - Vamos a tener los resultados de los ultimos 7 dias.
 - Cada grupo presenta el jueves que viene y muestra lo que el sistema genera
-- Aplicar alguna de las tecnicas que hemos visto
 
 Puntos a evaluar:
 - Como se utilizaron las tecnicas
@@ -23,6 +29,7 @@ Puntos a evaluar:
 
 
 Tema elegido: 
+
 
 """
 
