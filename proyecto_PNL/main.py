@@ -87,7 +87,7 @@ def get_data(url, params):
                 'max_results': 100
             }
         i += 1
-    return pd.concat(results)
+    pd.concat(results)
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         raise Exception(response.status_code, response.text)
@@ -156,6 +156,7 @@ def quitar_stopwords(dd):
 
     return no_stopwords_data
 
+
 def analisis_polaridad(serie):
     sentiment_analyzer = SentimentIntensityAnalyzer()
     df = serie.to_frame()
@@ -173,10 +174,10 @@ def analisis_polaridad(serie):
         row["compound"] = analisis["compound"]
         # Evaluar que valores se considerarán positivo o negativo
 
-        if analisis['compound'] >= 0.5 and analisis['compound'] <= 1:
+        if analisis['compound'] >= 0.2 and analisis['compound'] <= 1:
             row["result"] = "Positive"
 
-        elif analisis['compound'] <= -0.8:
+        elif analisis['compound'] <= -0.3:
             row["result"] = "Negative"
 
         else:
@@ -184,9 +185,9 @@ def analisis_polaridad(serie):
 
     return df
 
+
 def etiquetado_POS_adj(tokenized_text):
     data_pos = nltk.pos_tag(tokenized_text)
-    print(data_pos)
     adjetivos = []
     for k, v in data_pos:
         if k in ["AppleEvent", "notch", "laptop", "inch"]:
@@ -195,25 +196,36 @@ def etiquetado_POS_adj(tokenized_text):
             adjetivos.append(k)
     return adjetivos
 
+
 if __name__ == '__main__':
-    pd.set_option('display.max_columns', None)
+
+    op = input('Opcion: ')
+
     df = getToCsv()
     df = limpieza(df)
 
-    # que es lo que esta pasando
-    #df_situacion = df.copy(deep=False)
-    #df_situacion["text"] = df_situacion["text"].str.lower()
-    #df_situacion = tokenizacion(df_situacion)
-    #wordCloud(quitar_stopwords(df_situacion))
-    #input('enterrrr')
-    #df_adjetivos = df.copy(deep=False)
-    #df_adjetivos = tokenizacion(df_adjetivos)
-    #adjetivos = quitar_stopwords(df_adjetivos)
+    if op == '1':
+        # que es lo que esta pasando
+        df_situacion = df.copy(deep=False)
+        df_situacion["text"] = df_situacion["text"].str.lower()
+        df_situacion = tokenizacion(df_situacion)
+        wordCloud(quitar_stopwords(df_situacion))
 
-    #wordCloud(etiquetado_POS_adj(adjetivos))
+        print('Se presentaron los nuevos productos como las nuevas macbook, los airpod, los procesadores M1')
 
-    df_analisis = analisis_polaridad(df['text'])
-    sns.heatmap(df_analisis, cbar=False)
+    elif op == '2':
+        df_adjetivos = df.copy(deep=False)
+        df_adjetivos = tokenizacion(df_adjetivos)
+        adjetivos = quitar_stopwords(df_adjetivos)
 
+        wordCloud(etiquetado_POS_adj(adjetivos))
 
-    print(df_analisis.info())
+    elif op == '3':
+        df_analisis = analisis_polaridad(df['text'])
+
+        data = df_analisis['result'].value_counts().tolist()
+        labels = ['Neutral', 'Positive', 'Negative']
+        plt.pie(data, labels=labels, autopct='%1.1f%%')
+        plt.title('Reacciones')
+        plt.axis('equal')
+        plt.show()
