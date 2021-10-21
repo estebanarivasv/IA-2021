@@ -28,62 +28,42 @@ Puntos a evaluar:
 - Presentacion oral.
 
 
-Tema elegido: 
+Tema elegido: #AppleEvent
 
 
 """
-
-# import PySimpleGUI as sg
-
-# sg.theme('DarkAmber')   # Add a touch of color
-# # All the stuff inside your window.
-# layout = [[sg.Text('Some text on Row 1')],
-#           [sg.Text('Enter something on Row 2'), sg.InputText()],
-#           [sg.Button('Ok'), sg.Button('Cancel')] ]
-
-# # Create the Window
-# window = sg.Window('Window Title', layout)
-# # Event Loop to process "events" and get the "values" of the inputs
-# while True:
-#     event, values = window.read()
-#     if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
-#         break
-#     print('You entered ', values[0])
-
-# window.close()
-
-
-import os
-from dotenv import load_dotenv
-from nltk.tokenize import TweetTokenizer
-import pandas as pd
-from wordcloud import WordCloud
-import matplotlib.pyplot as plt
+import nltk
 import requests
+import string
+import os
+import pandas as pd
+import matplotlib.pyplot as plt
+from dotenv import load_dotenv
+from wordcloud import WordCloud
+from nltk.tokenize import TweetTokenizer
+from nltk.probability import FreqDist
+from nltk.corpus import stopwords
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 load_dotenv()
 
 bearer_token = os.environ.get("BEARER_TOKEN")
 
-def getTweets():
-    url = "https://api.twitter.com/2/tweets/search/recent"
-    params = {
-        'query': '#AppleEvent -is:retweet lang:en',
-        'max_results':100
-    }
-    headers = {
-        "Authorization": f"Bearer {bearer_token}",
-        "User-Agent":"v2FullArchiveSearchPython"
-    } 
-
-   
+url = "https://api.twitter.com/2/tweets/search/recent"
+params = {
+    'query': '#AppleEvent -is:retweet lang:en',
+    'max_results': 100
+}
+headers = {
+    "Authorization": f"Bearer {bearer_token}",
+    "User-Agent": "v2FullArchiveSearchPython"
+}
 
 
-
-def get_data(url,params):
+def get_data(url, params):
     response = requests.get(url, headers=headers, params=params)
     results = []
-    i =0
+    i = 0
 
     while i <= 2000:
         response = requests.get(url, headers=headers, params=params)
@@ -100,97 +80,135 @@ def get_data(url,params):
             print("Token paginacion actual: ", token)
             params = {
                 'query': '#AppleEvent -is:retweet lang:en',
-                'tweet.fields':'created_at,entities',
-                'user.fields':'username',
-                'next_token':token,
-                'max_results':100
+                'tweet.fields': 'created_at,entities',
+                'user.fields': 'username',
+                'next_token': token,
+                'max_results': 100
             }
-        i+=1
+        i += 1
     return pd.concat(results)
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         raise Exception(response.status_code, response.text)
     print("Request metadata", dict(response.json())['meta'])
 
+    df = pd.json_normalize(response.json()['data'])
+
+    df.to_csv('tweets_apple_event.csv')
 
 
-
-df = pd.json_normalize(response.json()['data'])
-
-df.to_csv('tweets_apple_event.csv')  
-
-
-def tokenizacion():
+def tokenizacion(df):
     tt = TweetTokenizer()
 
-    tokenized_text = dd['text'].apply(tt.tokenize)
-    dd['tokenized_text'] = tokenized_text
+    tokenized_text = df['text'].apply(tt.tokenize)
+    df['tokenized_text'] = tokenized_text
+
+    return df
 
 
 def getToCsv():
     dd = pd.read_csv("tweets_apple_event.csv")
+    return dd
 
 
-def wordCloud():
-    wordcloud = WordCloud(max_words=100, background_color="white").generate(dd['tokenized_text'].to_string())
+def wordCloud(word_list):
+    data = " ".join(map(str, word_list))
+    wordcloud = WordCloud(max_words=100, background_color="white", collocations=False).generate(data)
 
+    # Mostrar gráfico
     plt.imshow(wordcloud, interpolation='bilinear')
     plt.axis("off")
-    plt.rcParams['figure.figsize'] = [350, 350]
+    plt.rcParams['figure.figsize'] = [500, 500]
     plt.show()
 
 
-def limpieza():
-    URL_REGEX = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
+def limpieza(dd):
+    URL_REGEX = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s(" \
+                r")<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’])) "
     MENTIONS_REGEX = r"(?<=^|(?<=[^a-zA-Z0-9-_\.]))@([A-Za-z]+[A-Za-z0-9-_]+)"
     HASHTAG_REGEX = r"#"
 
+    dd["text"].replace(URL_REGEX, '', regex=True, inplace=True)
+    dd["text"].replace(MENTIONS_REGEX, '', regex=True, inplace=True)
+    dd["text"].replace(HASHTAG_REGEX, '', regex=True, inplace=True)
+    dd["text"].replace(r"[^A-Za-z0-9 | \n]+", ' ', regex=True, inplace=True)
+    dd["text"].replace(r"\t", ' ', regex=True, inplace=True)
+    dd["text"].replace('[{}]'.format(string.punctuation), ' ', regex=True, inplace=True)
+    dd["text"].replace(r"\n", '', regex=True, inplace=True)
+
+    return dd
 
 
-    dd["text"].replace(URL_REGEX,'',regex=True, inplace = True)
-    dd["text"].replace(MENTIONS_REGEX,'',regex=True, inplace = True)
-    dd["text"].replace(HASHTAG_REGEX,'',regex=True, inplace = True)
-    dd["text"].replace(r"[^A-Za-z0-9 | \n]+",' ',regex=True, inplace = True)
-    dd["text"].replace(r"\t",' ',regex=True, inplace = True)
-    dd["text"].replace('[{}]'.format(string.punctuation),' ',regex=True, inplace = True)
-    dd["text"].replace(r"\n",'',regex=True, inplace = True)
+def quitar_stopwords(dd):
+    stopwords_list = stopwords.words('english')
+    stopwords_list.append('https')
+    stopwords_list.append('co')
+    stopwords_list.append('t')
+    stopwords_list.append('u')
 
-    dd["text"] = dd["text"].str.lower()
-    dd
+    no_stopwords_data = []
+    # Crear lista sin stopwords
+    for x in dd['tokenized_text']:
+        for word in x:
+            if word.lower() not in stopwords_list:
+                no_stopwords_data.append(word)
 
+    return no_stopwords_data
 
+def analisis_polaridad(df):
+    sentiment_analyzer = SentimentIntensityAnalyzer()
+    df["negative"] = ""
+    df["neutral"] = ""
+    df["positive"] = ""
+    df["result"] = ""
+    df["compound"] = ""
+    for index, row in df.iterrows():
+        # Analizar cada review
+        analisis = sentiment_analyzer.polarity_scores(row['text'])
+        row["negative"] = analisis["neg"]
+        row["neutral"] = analisis["neu"]
+        row["positive"] = analisis["pos"]
+        row["compound"] = analisis["compound"]
+        # Evaluar que valores se considerarán positivo o negativo
 
+        if analisis['compound'] >= 0.5 and analisis['compound'] <= 1:
+            row["result"] = "Positive"
 
+        elif analisis['compound'] <= 0:
+            row["result"] = "Negative"
 
+        else:
+            row["result"] = "Neutral"
 
+    return df
 
+def etiquetado_POS_adj(tokenized_text):
+    data_pos = nltk.pos_tag(tokenized_text)
+    print(data_pos)
+    adjetivos = []
+    for k, v in data_pos:
+        if k in ["AppleEvent", "notch", "laptop", "inch"]:
+            continue
+        if v in ["JJ", "JJR", "JJS"]:
+            adjetivos.append(k)
+    return adjetivos
 
+if __name__ == '__main__':
+    df = getToCsv()
+    df = limpieza(df)
 
+    # que es lo que esta pasando
+    #df_situacion = df.copy(deep=False)
+    #df_situacion["text"] = df_situacion["text"].str.lower()
+    #df_situacion = tokenizacion(df_situacion)
+    #wordCloud(quitar_stopwords(df_situacion))
+    #input('enterrrr')
+    #df_adjetivos = df.copy(deep=False)
+    #df_adjetivos = tokenizacion(df_adjetivos)
+    #adjetivos = quitar_stopwords(df_adjetivos)
 
+    #wordCloud(etiquetado_POS_adj(adjetivos))
+    df = analisis_polaridad(df)
+    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    print(df)
