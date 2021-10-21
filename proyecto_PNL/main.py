@@ -44,6 +44,7 @@ from nltk.tokenize import TweetTokenizer
 from nltk.probability import FreqDist
 from nltk.corpus import stopwords
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import seaborn as sns
 
 load_dotenv()
 
@@ -155,8 +156,9 @@ def quitar_stopwords(dd):
 
     return no_stopwords_data
 
-def analisis_polaridad(df):
+def analisis_polaridad(serie):
     sentiment_analyzer = SentimentIntensityAnalyzer()
+    df = serie.to_frame()
     df["negative"] = ""
     df["neutral"] = ""
     df["positive"] = ""
@@ -174,7 +176,7 @@ def analisis_polaridad(df):
         if analisis['compound'] >= 0.5 and analisis['compound'] <= 1:
             row["result"] = "Positive"
 
-        elif analisis['compound'] <= 0:
+        elif analisis['compound'] <= -0.8:
             row["result"] = "Negative"
 
         else:
@@ -194,6 +196,7 @@ def etiquetado_POS_adj(tokenized_text):
     return adjetivos
 
 if __name__ == '__main__':
+    pd.set_option('display.max_columns', None)
     df = getToCsv()
     df = limpieza(df)
 
@@ -208,7 +211,9 @@ if __name__ == '__main__':
     #adjetivos = quitar_stopwords(df_adjetivos)
 
     #wordCloud(etiquetado_POS_adj(adjetivos))
-    df = analisis_polaridad(df)
-    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
-    print(df)
+    df_analisis = analisis_polaridad(df['text'])
+    sns.heatmap(df_analisis, cbar=False)
+
+
+    print(df_analisis.info())
