@@ -41,13 +41,12 @@ import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 from wordcloud import WordCloud
 from nltk.tokenize import TweetTokenizer
-from nltk.probability import FreqDist
 from nltk.corpus import stopwords
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-import seaborn as sns
 
 load_dotenv()
 
+# TODO: Definir bearer token en un archivo .env
 bearer_token = os.environ.get("BEARER_TOKEN")
 
 url = "https://api.twitter.com/2/tweets/search/recent"
